@@ -1,0 +1,15 @@
+package com.ris.volunteerplatform.dto;
+
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
+
+import java.math.BigDecimal;
+
+public record RateVolunteerRequest(
+        @NotNull
+        @DecimalMin("0.0")
+        @DecimalMax("5.0")
+        BigDecimal rating
+) {
+}

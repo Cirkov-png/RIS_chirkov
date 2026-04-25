@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-ink font-sans text-stone-100 min-h-screen;
+  background-image:
+    radial-gradient(ellipse 120% 80% at 50% -40%, rgba(45, 212, 191, 0.12), transparent),
+    radial-gradient(ellipse 60% 50% at 100% 0%, rgba(251, 113, 133, 0.08), transparent),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(12, 18, 34, 0));
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply rounded-2xl border border-white/10 bg-surface-card/80 backdrop-blur-sm shadow-xl;
+  }
+
+  .hero-grid {
+    background-image:
+      linear-gradient(rgba(139, 154, 181, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(139, 154, 181, 0.1) 1px, transparent 1px);
+    background-size: 34px 34px;
+  }
+
+  .accent-ring {
+    box-shadow:
+      0 0 0 1px rgba(45, 212, 191, 0.35) inset,
+      0 20px 50px -28px rgba(45, 212, 191, 0.55);
+  }
+
+  .page-blur {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .page-blur::before {
+    content: '';
+    position: absolute;
+    top: -90px;
+    right: -70px;
+    width: 240px;
+    height: 240px;
+    border-radius: 9999px;
+    z-index: -1;
+    background: radial-gradient(circle, rgba(45, 212, 191, 0.2), rgba(45, 212, 191, 0));
+    filter: blur(2px);
+    pointer-events: none;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
