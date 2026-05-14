@@ -11,6 +11,7 @@ export interface AuthUser {
 
 export interface VolunteerDto {
   id: number;
+  uuid: string;
   userId: number;
   fullName: string | null;
   phone: string | null;
@@ -25,6 +26,7 @@ export interface VolunteerDto {
 
 export interface SkillDto {
   id: number;
+  uuid: string;
   name: string;
   categoryId: number | null;
 }
@@ -40,6 +42,7 @@ export interface VolunteerSkillDto {
 
 export interface TaskDto {
   id: number;
+  uuid: string;
   title: string;
   description: string | null;
   organizerId: number;
@@ -59,7 +62,6 @@ export interface TaskRequirementDto {
   skillName?: string | null;
 }
 
-/** Публичные поля пользователя (в т.ч. карточка организатора). */
 export interface UserPublicDto {
   id: number;
   username: string;
@@ -113,4 +115,31 @@ export interface VolunteerStatsDto {
   completedTasksCount: number;
   pendingApplicationsCount: number;
   approvedApplicationsCount: number;
+}
+
+export interface TaskWatchDto {
+  uuid: string;
+  volunteerUuid: string;
+  taskUuid: string;
+  taskTitle: string;
+  taskStatus: string;
+  taskEndTime: string | null;
+  watchedAt: string;
+  notifiedDeadline: boolean;
+  daysUntilDeadline: number;
+}
+
+export interface WeatherDto {
+  city: string;
+  description: string;
+  temperatureCelsius: number;
+  humidity: number;
+  windSpeed: number;
+  icon: string;
+}
+
+export interface MapGeocodeDto {
+  lat: number;
+  lng: number;
+  formattedAddress: string;
 }

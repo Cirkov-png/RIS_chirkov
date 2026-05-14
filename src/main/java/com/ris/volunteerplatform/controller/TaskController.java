@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -25,6 +26,12 @@ public class TaskController {
     @GetMapping
     public List<TaskDto> list() {
         return taskService.findAll();
+    }
+
+    /** Задача по публичному UUID (удобно для ссылок и отслеживания). Должен быть выше `/{id}`. */
+    @GetMapping("/by-uuid/{uuid}")
+    public TaskDto getByUuid(@PathVariable UUID uuid) {
+        return taskService.findByUuid(uuid);
     }
 
     @GetMapping("/{id}")

@@ -16,6 +16,11 @@ export async function fetchTask(id: number): Promise<TaskDto> {
   return data;
 }
 
+export async function fetchTaskByUuid(uuid: string): Promise<TaskDto> {
+  const { data } = await api.get<TaskDto>(`/api/tasks/by-uuid/${encodeURIComponent(uuid)}`);
+  return data;
+}
+
 export async function createTask(body: {
   title: string;
   description?: string | null;

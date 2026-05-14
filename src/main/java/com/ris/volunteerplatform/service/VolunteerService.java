@@ -182,6 +182,13 @@ public class VolunteerService {
         return result.stream().map(this::toDto).toList();
     }
 
+    /** UC14b: Поиск по UUID навыка */
+    @Transactional(readOnly = true)
+    public List<VolunteerDto> findBySkillUuid(java.util.UUID skillUuid) {
+        return volunteerRepository.findActiveBySkillUuid(skillUuid)
+                .stream().map(this::toDto).toList();
+    }
+
     /** UC15: Ручная оценка координатора (учитывается в среднем вместе с оценками по закрытым заявкам) */
     @Transactional
     public VolunteerDto rateVolunteer(Long id, BigDecimal newRating) {
@@ -321,7 +328,7 @@ public class VolunteerService {
 
     private VolunteerDto toDto(Volunteer v) {
         return new VolunteerDto(
-                v.getId(), v.getUser().getId(), v.getFullName(), v.getPhone(),
+                v.getId(), v.getUuid(), v.getUser().getId(), v.getFullName(), v.getPhone(),
                 v.getRegion(), v.getBio(), v.isActive(), v.getBirthDate(),
                 v.getRating(), v.getCompletedTasksCount(), v.getAvatarUrl());
     }
@@ -340,7 +347,7 @@ public class VolunteerService {
     }
 
     private TaskDto toTaskDto(Task t) {
-        return new TaskDto(t.getId(), t.getTitle(), t.getDescription(),
+        return new TaskDto(t.getId(), t.getUuid(), t.getTitle(), t.getDescription(),
                 t.getOrganizer().getId(), t.getCategory() != null ? t.getCategory().getId() : null,
                 t.getStatus(), t.getLocation(), t.getStartTime(), t.getEndTime(), t.getCreatedAt());
     }

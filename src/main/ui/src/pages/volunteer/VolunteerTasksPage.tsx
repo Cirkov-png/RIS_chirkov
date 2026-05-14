@@ -58,7 +58,9 @@ export function VolunteerTasksPage() {
               <p className="font-semibold text-lg">{t.title}</p>
               <p className="text-xs text-ink-light mt-1">
                 {t.location || 'Место не указано'} · {taskStatusRu(t.status)}
+                {t.endTime ? ` · до ${new Date(t.endTime).toLocaleString()}` : ''}
               </p>
+              <p className="text-[10px] text-ink-light/80 font-mono mt-1 break-all">uuid: {t.uuid}</p>
             </div>
             <Link
               to={`/volunteer/tasks/${t.id}`}

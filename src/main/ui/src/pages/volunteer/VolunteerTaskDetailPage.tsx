@@ -5,14 +5,14 @@ import * as volunteersApi from '../../api/volunteersApi';
 import * as tasksApi from '../../api/tasksApi';
 import * as taskRequirementsApi from '../../api/taskRequirementsApi';
 import * as usersApi from '../../api/usersApi';
+import { fetchWatchlist, unwatchTask, watchTask } from '../../api/externalApi';
 import type { ApplicationStatus, TaskApplicationDto, TaskDto, TaskRequirementDto, UserPublicDto, VolunteerDto } from '../../types';
 import { errorMessage } from '../../utils/errorMessage';
 import { applicationStatusRu } from '../../utils/applicationStatus';
 import { taskStatusRu } from '../../utils/taskStatus';
 
 export function VolunteerTaskDetailPage() {
-  const { taskId: taskIdParam } = useParams<{ taskId: string }>();
-  const taskId = taskIdParam ? Number(taskIdParam) : NaN;
+  const { taskId: taskIdParam, taskUuid } = useParams<{ taskId?: string; taskUuid?: string }>();
   const nav = useNavigate();
   const { user } = useAuth();
 
@@ -26,33 +26,55 @@ export function VolunteerTaskDetailPage() {
   const [err, setErr] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [applying, setApplying] = useState(false);
+  const [isWatching, setIsWatching] = useState(false);
+  const [watchBusy, setWatchBusy] = useState(false);
 
   const load = useCallback(async () => {
-    if (!user || !Number.isFinite(taskId)) return;
+    if (!user) return;
     setLoading(true);
     setErr(null);
     try {
       const vols = await volunteersApi.fetchVolunteers();
       const mine = vols.find((v) => v.userId === user.userId) ?? null;
       setVolunteer(mine);
-      const t = await tasksApi.fetchTask(taskId);
+
+      let t: TaskDto | null = null;
+      if (taskUuid) {
+        t = await tasksApi.fetchTaskByUuid(taskUuid);
+      } else if (taskIdParam && Number.isFinite(Number(taskIdParam))) {
+        t = await tasksApi.fetchTask(Number(taskIdParam));
+      }
+      if (!t) {
+        setTask(null);
+        setRequirements([]);
+        setOrganizer(null);
+        setApplication(null);
+        setIsWatching(false);
+        return;
+      }
+      const resolvedTaskId = t.id;
       setTask(t);
-      const reqs = await taskRequirementsApi.fetchTaskRequirementsByTask(taskId);
+      const reqs = await taskRequirementsApi.fetchTaskRequirementsByTask(resolvedTaskId);
       setRequirements(reqs);
       const org = await usersApi.fetchUser(t.organizerId);
       setOrganizer(org);
       if (mine) {
-        const app = await volunteersApi.fetchApplicationForTask(mine.id, taskId);
+        const [app, wl] = await Promise.all([
+          volunteersApi.fetchApplicationForTask(mine.id, resolvedTaskId),
+          fetchWatchlist(mine.id),
+        ]);
         setApplication(app);
+        setIsWatching(wl.some((w) => w.taskUuid === t.uuid));
       } else {
         setApplication(null);
+        setIsWatching(false);
       }
     } catch (e) {
       setErr(errorMessage(e));
     } finally {
       setLoading(false);
     }
-  }, [user, taskId]);
+  }, [user, taskIdParam, taskUuid]);
 
   useEffect(() => {
     void load();
@@ -63,14 +85,36 @@ export function VolunteerTaskDetailPage() {
   );
   const canApply = Boolean(volunteer && task && task.status === 'OPEN' && !hasActiveApplication);
 
+  async function toggleWatch() {
+    if (!volunteer || !task) return;
+    setWatchBusy(true);
+    setErr(null);
+    setMsg(null);
+    try {
+      if (isWatching) {
+        await unwatchTask(volunteer.id, task.uuid);
+        setIsWatching(false);
+        setMsg('Задача убрана из отслеживания');
+      } else {
+        await watchTask(volunteer.id, task.uuid);
+        setIsWatching(true);
+        setMsg('Вы следите за сроком этой задачи');
+      }
+    } catch (e) {
+      setErr(errorMessage(e));
+    } finally {
+      setWatchBusy(false);
+    }
+  }
+
   async function apply() {
-    if (!volunteer || !Number.isFinite(taskId)) return;
+    if (!volunteer || !task) return;
     setApplying(true);
     setErr(null);
     setMsg(null);
     try {
       await volunteersApi.applyToTask(volunteer.id, {
-        taskId,
+        taskId: task.id,
         message: applyMessage.trim() || null,
       });
       setApplyMessage('');
@@ -96,7 +140,7 @@ export function VolunteerTaskDetailPage() {
   }
 
   if (loading) return <p className="text-ink-light">Загрузка…</p>;
-  if (!Number.isFinite(taskId) || !task) {
+  if (!task) {
     return (
       <div className="rounded-xl border border-coral/40 bg-coral/10 p-6 text-coral">
         Задача не найдена.
@@ -121,14 +165,25 @@ export function VolunteerTaskDetailPage() {
       {err && <div className="rounded-lg bg-coral/15 border border-coral/40 text-coral text-sm px-4 py-2">{err}</div>}
 
       <article className="bg-surface-card border border-white/10 rounded-2xl p-6 md:p-8 space-y-4">
-        <div>
-          <h1 className="font-display text-2xl md:text-3xl font-bold">{task.title}</h1>
-          <p className="text-sm text-ink-light mt-2">
-            {taskStatusRu(task.status)}
-            {task.location ? ` · ${task.location}` : ''}
-            {task.startTime ? ` · начало: ${new Date(task.startTime).toLocaleString()}` : ''}
-            {task.endTime ? ` · конец: ${new Date(task.endTime).toLocaleString()}` : ''}
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <h1 className="font-display text-2xl md:text-3xl font-bold">{task.title}</h1>
+            <p className="text-xs text-ink-light mt-2 font-mono break-all">UUID: {task.uuid}</p>
+            <p className="text-sm text-ink-light mt-2">
+              {taskStatusRu(task.status)}
+              {task.location ? ` · ${task.location}` : ''}
+              {task.startTime ? ` · начало: ${new Date(task.startTime).toLocaleString()}` : ''}
+              {task.endTime ? ` · конец: ${new Date(task.endTime).toLocaleString()}` : ''}
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={watchBusy}
+            onClick={() => void toggleWatch()}
+            className="shrink-0 px-4 py-2 rounded-xl border border-accent/50 text-accent text-sm font-semibold hover:bg-accent/10 disabled:opacity-40"
+          >
+            {watchBusy ? '…' : isWatching ? 'Не отслеживать' : 'Следить за сроком'}
+          </button>
         </div>
 
         {task.description && (

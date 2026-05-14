@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import * as volunteersApi from '../../api/volunteersApi';
 import * as skillsApi from '../../api/skillsApi';
 import * as volunteerSkillsApi from '../../api/volunteerSkillsApi';
-import type { VolunteerDto, VolunteerSkillDto } from '../../types';
+import type { SkillDto, VolunteerDto, VolunteerSkillDto } from '../../types';
 import { errorMessage } from '../../utils/errorMessage';
 import { BY_REGIONS } from '../../utils/regions';
 import { AvatarImg } from '../../components/AvatarImg';
@@ -11,7 +11,7 @@ import { AvatarImg } from '../../components/AvatarImg';
 export function VolunteerProfileSkillsPage() {
   const { user } = useAuth();
   const [volunteer, setVolunteer] = useState<VolunteerDto | null>(null);
-  const [skills, setSkills] = useState<{ id: number; name: string }[]>([]);
+  const [skills, setSkills] = useState<SkillDto[]>([]);
   const [vSkills, setVSkills] = useState<VolunteerSkillDto[]>([]);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -24,6 +24,9 @@ export function VolunteerProfileSkillsPage() {
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [skillSearchUuid, setSkillSearchUuid] = useState('');
+  const [skillSearchResults, setSkillSearchResults] = useState<VolunteerDto[]>([]);
+  const [skillSearchBusy, setSkillSearchBusy] = useState(false);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -37,7 +40,7 @@ export function VolunteerProfileSkillsPage() {
       ]);
       const mine = vols.find((v) => v.userId === user.userId) ?? null;
       setVolunteer(mine);
-      setSkills(sk.map((x) => ({ id: x.id, name: x.name })));
+      setSkills(sk);
       setVSkills(mine ? vs.filter((x) => x.volunteerId === mine.id) : []);
       if (mine) {
         setFullName(mine.fullName ?? '');
@@ -59,6 +62,22 @@ export function VolunteerProfileSkillsPage() {
   }, [load]);
 
   const skillName = useCallback((id: number) => skills.find((s) => s.id === id)?.name ?? `#${id}`, [skills]);
+
+  async function searchVolunteersBySkillUuid() {
+    const u = skillSearchUuid.trim();
+    if (!u) return;
+    setSkillSearchBusy(true);
+    setErr(null);
+    try {
+      const list = await volunteersApi.findVolunteersBySkillUuid(u);
+      setSkillSearchResults(list);
+    } catch (e) {
+      setErr(errorMessage(e));
+      setSkillSearchResults([]);
+    } finally {
+      setSkillSearchBusy(false);
+    }
+  }
 
   const availableToAdd = useMemo(() => {
     if (!volunteer) return [];
@@ -149,6 +168,7 @@ export function VolunteerProfileSkillsPage() {
 
       <section className="bg-surface-card border border-white/10 rounded-2xl p-6 space-y-4">
         <h2 className="font-display text-xl font-semibold text-accent">Профиль</h2>
+        <p className="text-xs text-ink-light font-mono break-all">UUID волонтёра: {volunteer.uuid}</p>
         <div className="flex flex-col sm:flex-row gap-4 items-start">
           <div className="w-24 h-24 rounded-full border border-white/15 overflow-hidden shrink-0">
             <AvatarImg src={avatarUrl} className="w-full h-full object-cover" alt="Аватар" />
@@ -248,6 +268,53 @@ export function VolunteerProfileSkillsPage() {
                   Удалить
                 </button>
               </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="bg-surface-card border border-white/10 rounded-2xl p-6 space-y-4">
+        <h2 className="font-display text-xl font-semibold text-accent">Поиск волонтёров по навыку</h2>
+        <p className="text-sm text-ink-light">
+          Вставьте UUID навыка из справочника ниже. Запрос выполняется к серверу: список волонтёров, у которых в
+          профиле есть этот навык.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <input
+            className="flex-1 rounded-lg bg-ink border border-white/10 px-3 py-2 text-sm font-mono"
+            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+            value={skillSearchUuid}
+            onChange={(e) => setSkillSearchUuid(e.target.value)}
+          />
+          <button
+            type="button"
+            disabled={skillSearchBusy || !skillSearchUuid.trim()}
+            onClick={() => void searchVolunteersBySkillUuid()}
+            className="px-4 py-2 rounded-xl bg-accent text-ink font-semibold text-sm disabled:opacity-40"
+          >
+            {skillSearchBusy ? 'Поиск…' : 'Найти'}
+          </button>
+        </div>
+        {skillSearchResults.length > 0 && (
+          <ul className="rounded-lg border border-white/10 divide-y divide-white/10">
+            {skillSearchResults.map((v) => (
+              <li key={v.id} className="px-3 py-2 text-sm flex flex-wrap justify-between gap-2">
+                <span className="font-medium">{v.fullName ?? `Волонтёр #${v.id}`}</span>
+                <span className="text-ink-light">{v.region ?? 'регион не указан'}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="bg-surface-card border border-white/10 rounded-2xl p-6 space-y-3">
+        <h2 className="font-display text-lg font-semibold text-ink-light">Справочник навыков (UUID для копирования)</h2>
+        <ul className="max-h-52 overflow-y-auto text-xs space-y-1.5 text-stone-300">
+          {skills.map((s) => (
+            <li key={s.id} className="font-mono break-all">
+              <span className="text-stone-100 font-sans font-medium">{s.name}</span>
+              {' — '}
+              {s.uuid}
             </li>
           ))}
         </ul>

@@ -28,6 +28,12 @@ app:
   jwt:
     secret: ${JWT_SECRET:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}
     expiration-ms: 86400000
+  # OpenWeather: ключ по умолчанию для разработки; в проде лучше WEATHER_API_KEY в окружении
+  weather:
+    api-key: ${WEATHER_API_KEY:9fc3220dd91bcbda7f8adafa7d5464e0}
+  # Google Maps: включите Geocoding API в Google Cloud Console, создайте ключ и задайте GOOGLE_MAPS_API_KEY
+  google:
+    maps-api-key: ${GOOGLE_MAPS_API_KEY:}
 
 server:
   port: 8080

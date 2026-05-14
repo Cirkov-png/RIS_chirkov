@@ -106,3 +106,17 @@ export async function updateAvatar(volunteerId: number, avatarUrl: string): Prom
   const { data } = await api.patch<VolunteerDto>(`/api/volunteers/${volunteerId}/avatar`, { avatarUrl });
   return data;
 }
+
+/** Поиск волонтёров, у которых в профиле есть навык (по id навыка). */
+export async function findVolunteersBySkill(skillId: number, onlyActive = true): Promise<VolunteerDto[]> {
+  const { data } = await api.get<VolunteerDto[]>(
+    `/api/volunteers/search/skill?skillId=${skillId}&onlyActive=${onlyActive}`,
+  );
+  return data;
+}
+
+/** Поиск волонтёров по UUID навыка из справочника. */
+export async function findVolunteersBySkillUuid(skillUuid: string): Promise<VolunteerDto[]> {
+  const { data } = await api.get<VolunteerDto[]>(`/api/volunteers/search/skill/${encodeURIComponent(skillUuid)}`);
+  return data;
+}

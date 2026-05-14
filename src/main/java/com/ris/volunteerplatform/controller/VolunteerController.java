@@ -110,11 +110,17 @@ public class VolunteerController {
         return volunteerService.findByRegion(region, onlyActive);
     }
 
-    /** UC14: Поиск по навыку */
+    /** UC14: Поиск по навыку (по id) */
     @GetMapping("/search/skill")
     public List<VolunteerDto> findBySkill(@RequestParam Long skillId,
                                            @RequestParam(defaultValue = "true") boolean onlyActive) {
         return volunteerService.findBySkill(skillId, onlyActive);
+    }
+
+    /** UC14b: Поиск по навыку через UUID навыка */
+    @GetMapping("/search/skill/{skillUuid}")
+    public List<VolunteerDto> findBySkillUuid(@PathVariable java.util.UUID skillUuid) {
+        return volunteerService.findBySkillUuid(skillUuid);
     }
 
     /** UC15: Оценить волонтёра */

@@ -11,6 +11,10 @@ import { VolunteerTasksPage } from './pages/volunteer/VolunteerTasksPage';
 import { VolunteerTaskDetailPage } from './pages/volunteer/VolunteerTaskDetailPage';
 import { VolunteerProfileSkillsPage } from './pages/volunteer/VolunteerProfileSkillsPage';
 import { VolunteerApplicationsPage } from './pages/volunteer/VolunteerApplicationsPage';
+import { VolunteerWatchlistPage } from './pages/volunteer/VolunteerWatchlistPage';
+import { ExternalIntegrationsPage } from './pages/ExternalIntegrationsPage';
+import { OrganizerLayout } from './pages/organizer/OrganizerLayout';
+import { OrganizerVolunteerSearchPage } from './pages/organizer/OrganizerVolunteerSearchPage';
 import { OrganizerDashboardPage } from './pages/OrganizerDashboardPage';
 import { OrganizerApplicationsPage } from './pages/OrganizerApplicationsPage';
 import { OrganizerSelfProfilePage } from './pages/OrganizerSelfProfilePage';
@@ -38,34 +42,27 @@ export default function App() {
             >
               <Route index element={<VolunteerHomePage />} />
               <Route path="tasks" element={<VolunteerTasksPage />} />
+              <Route path="tasks/u/:taskUuid" element={<VolunteerTaskDetailPage />} />
               <Route path="tasks/:taskId" element={<VolunteerTaskDetailPage />} />
+              <Route path="watchlist" element={<VolunteerWatchlistPage />} />
               <Route path="profile" element={<VolunteerProfileSkillsPage />} />
               <Route path="applications" element={<VolunteerApplicationsPage />} />
+              <Route path="external-services" element={<ExternalIntegrationsPage />} />
             </Route>
             <Route
               path="organizer"
               element={
                 <ProtectedRoute roles={['ORGANIZER']}>
-                  <OrganizerDashboardPage />
+                  <OrganizerLayout />
                 </ProtectedRoute>
               }
-            />
-            <Route
-              path="organizer/applications"
-              element={
-                <ProtectedRoute roles={['ORGANIZER']}>
-                  <OrganizerApplicationsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="organizer/profile"
-              element={
-                <ProtectedRoute roles={['ORGANIZER']}>
-                  <OrganizerSelfProfilePage />
-                </ProtectedRoute>
-              }
-            />
+            >
+              <Route index element={<OrganizerDashboardPage />} />
+              <Route path="applications" element={<OrganizerApplicationsPage />} />
+              <Route path="profile" element={<OrganizerSelfProfilePage />} />
+              <Route path="search-volunteers" element={<OrganizerVolunteerSearchPage />} />
+              <Route path="external-services" element={<ExternalIntegrationsPage />} />
+            </Route>
             <Route
               path="coordinator"
               element={

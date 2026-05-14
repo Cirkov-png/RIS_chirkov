@@ -33,6 +33,9 @@ export function VolunteerLayout() {
         <NavLink to="/volunteer/tasks" className={({ isActive }) => `${subLink} ${isActive ? subActive : ''}`}>
           Задачи
         </NavLink>
+        <NavLink to="/volunteer/watchlist" className={({ isActive }) => `${subLink} ${isActive ? subActive : ''}`}>
+          Отслеживание
+        </NavLink>
         <NavLink to="/volunteer/profile" className={({ isActive }) => `${subLink} ${isActive ? subActive : ''}`}>
           Профиль и навыки
         </NavLink>
@@ -41,6 +44,12 @@ export function VolunteerLayout() {
           className={({ isActive }) => `${subLink} ${isActive ? subActive : ''}`}
         >
           Заявки
+        </NavLink>
+        <NavLink
+          to="/volunteer/external-services"
+          className={({ isActive }) => `${subLink} ${isActive ? subActive : ''}`}
+        >
+          Внешние сервисы
         </NavLink>
       </nav>
       <Outlet />

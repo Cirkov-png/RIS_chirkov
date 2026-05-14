@@ -4,10 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.UUID;
 
-/**
- * Задача, публикуемая организатором; содержит требования по навыкам в отдельной сущности.
- */
 @Entity
 @Table(name = "tasks")
 @Getter
@@ -20,6 +18,10 @@ public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, unique = true)
+    @Builder.Default
+    private UUID uuid = UUID.randomUUID();
 
     @Column(nullable = false, length = 500)
     private String title;
@@ -51,10 +53,17 @@ public class Task {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "deadline_notified", nullable = false)
+    @Builder.Default
+    private boolean deadlineNotified = false;
+
+    @Column(name = "reminder_days", nullable = false)
+    @Builder.Default
+    private int reminderDays = 3;
+
     @PrePersist
     void prePersist() {
-        if (createdAt == null) {
-            createdAt = Instant.now();
-        }
+        if (createdAt == null) createdAt = Instant.now();
+        if (uuid == null) uuid = UUID.randomUUID();
     }
 }

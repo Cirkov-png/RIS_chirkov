@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +45,12 @@ public class TaskService {
     public TaskDto findById(Long id) {
         return taskRepository.findById(id).map(this::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("Задача не найдена: " + id));
+    }
+
+    @Transactional(readOnly = true)
+    public TaskDto findByUuid(UUID uuid) {
+        return taskRepository.findByUuid(uuid).map(this::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException("Задача не найдена: " + uuid));
     }
 
     /**
@@ -139,6 +146,7 @@ public class TaskService {
     private TaskDto toDto(Task t) {
         return new TaskDto(
                 t.getId(),
+                t.getUuid(),
                 t.getTitle(),
                 t.getDescription(),
                 t.getOrganizer().getId(),

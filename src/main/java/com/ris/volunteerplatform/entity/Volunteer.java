@@ -5,10 +5,8 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
-/**
- * Профиль волонтёра, связанный 1:1 с пользователем роли VOLUNTEER.
- */
 @Entity
 @Table(name = "volunteers")
 @Getter
@@ -21,6 +19,10 @@ public class Volunteer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, unique = true)
+    @Builder.Default
+    private UUID uuid = UUID.randomUUID();
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
@@ -54,7 +56,6 @@ public class Volunteer {
     @Column(name = "avatar_url", columnDefinition = "TEXT")
     private String avatarUrl;
 
-    /** Сумма ручных оценок (координатор), для среднего вместе с оценками по заявкам */
     @Column(name = "manual_rating_sum", nullable = false, precision = 12, scale = 4)
     @Builder.Default
     private BigDecimal manualRatingSum = BigDecimal.ZERO;
@@ -62,4 +63,9 @@ public class Volunteer {
     @Column(name = "manual_rating_count", nullable = false)
     @Builder.Default
     private int manualRatingCount = 0;
+
+    @PrePersist
+    void prePersist() {
+        if (uuid == null) uuid = UUID.randomUUID();
+    }
 }

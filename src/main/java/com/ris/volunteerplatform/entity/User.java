@@ -4,10 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.UUID;
 
-/**
- * Учётная запись в системе (аутентификация и роль).
- */
 @Entity
 @Table(name = "users")
 @Getter
@@ -20,6 +18,10 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, unique = true)
+    @Builder.Default
+    private UUID uuid = UUID.randomUUID();
 
     @Column(nullable = false, unique = true, length = 100)
     private String username;
@@ -35,6 +37,7 @@ public class User {
     private UserRole role;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean enabled = true;
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -54,8 +57,7 @@ public class User {
 
     @PrePersist
     void prePersist() {
-        if (createdAt == null) {
-            createdAt = Instant.now();
-        }
+        if (createdAt == null) createdAt = Instant.now();
+        if (uuid == null) uuid = UUID.randomUUID();
     }
 }

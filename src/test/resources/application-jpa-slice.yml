@@ -1,0 +1,8 @@
+# @DataJpaTest: без Flyway, схема генерируется Hibernate по сущностям (допустимо для проверки JPA-слоя)
+spring:
+  flyway:
+    enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false

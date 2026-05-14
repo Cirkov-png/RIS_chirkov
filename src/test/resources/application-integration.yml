@@ -1,0 +1,7 @@
+# Полный контекст Spring Boot + Postgres (Testcontainers)
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true

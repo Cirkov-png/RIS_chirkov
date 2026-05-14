@@ -63,6 +63,6 @@ public class SkillService {
     }
 
     private SkillDto toDto(Skill s) {
-        return new SkillDto(s.getId(), s.getName(), s.getCategory() != null ? s.getCategory().getId() : null);
+        return new SkillDto(s.getId(), s.getUuid(), s.getName(), s.getCategory() != null ? s.getCategory().getId() : null);
     }
 }
